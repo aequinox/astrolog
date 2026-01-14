@@ -71,6 +71,6 @@ atlas.as
 timezone.as
 earth.bmp
 
-# MCP and ephemeral folders
+# MCP and ephemeris folders
 .specify/
 ephem/

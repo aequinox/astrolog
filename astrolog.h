@@ -159,35 +159,36 @@
 */
 
 #ifndef PC
-#define DEFAULT_DIR "~/astrolog"
+#define HOME_DIR "/home/renner"
+#define DEFAULT_DIR HOME_DIR "/.astrolog"
 #else
 #define DEFAULT_DIR "C:\\Astrolog"
 #endif
-  // Change this string to directory path program should look in for the
-  // astrolog.as default file, if one is not in the executable directory, the
-  // current directory, or in directories indicated by Astrolog environment
-  // variables. For PC systems, use two backslashes instead of one forward
-  // slash to divide subdirectories. For Unix systems, it may be necessary to
-  // expand "~" to the full path. Files will still be found even if not set!
+// Change this string to directory path program should look in for the
+// astrolog.as default file, if one is not in the executable directory, the
+// current directory, or in directories indicated by Astrolog environment
+// variables. For PC systems, use two backslashes instead of one forward
+// slash to divide subdirectories. For Unix systems, it may be necessary to
+// expand "~" to the full path. Files will still be found even if not set!
 
-#define CHART_DIR DEFAULT_DIR
-  // This string is the directory the program looks in for chart info files
-  // (-i switch) if not in the executable or current directory. This is
-  // normally the default dir above but may be changed to be somewhere else.
+#define CHART_DIR DEFAULT_DIR "/radix"
+// This string is the directory the program looks in for chart info files
+// (-i switch) if not in the executable or current directory. This is
+// normally the default dir above but may be changed to be somewhere else.
 
-#define EPHE_DIR DEFAULT_DIR
-  // This string is the directory the program looks in for the ephemeris files
-  // as accessed with the -b switch. This is normally the default dir above
-  // but may be changed to be somewhere else.
+#define EPHE_DIR DEFAULT_DIR "/ephemeris"
+// This string is the directory the program looks in for the ephemeris files
+// as accessed with the -b switch. This is normally the default dir above
+// but may be changed to be somewhere else.
 
-#define DEFAULT_LONG DMS(122, 19, 55)
-#define DEFAULT_LAT  DMS(47,  36, 22)
-  // Change numbers to longitude and latitude of your current location. Use
-  // negative values for eastern or southern degrees.
+#define DEFAULT_LONG DMS(9, 3, 28)
+#define DEFAULT_LAT DMS(48, 31, 22)
+// Change numbers to longitude and latitude of your current location. Use
+// negative values for eastern or southern degrees.
 
-#define DEFAULT_ZONE 8.00
-  // Change this number to the time zone of your current location in hours
-  // before (west of) UTC. Use negative values for eastern zones.
+#define DEFAULT_ZONE -1.00
+// Change this number to the time zone of your current location in hours
+// before (west of) UTC. Use negative values for eastern zones.
 
 /*
 ** OPTIONAL CONFIGURATION SECTION: Although not necessary, one may like
@@ -325,6 +326,14 @@
 #endif
 #ifdef TIME
 #include <time.h>
+#endif
+
+// Directory operations for interpretation style folders
+#ifndef WIN
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 #ifdef X11
@@ -1610,6 +1619,80 @@ typedef struct _ChartPositions {
   int house[objMax];    // House each object is in
   real lonMC;           // 0 longitude converted to equatorial coordinates
 } CP;
+
+// Interpretation style structures for custom .ais files
+typedef struct _InterpretationCombo {
+  char *key;           // "Sun+Aries+1" format
+  char *value;         // The interpretation text
+} InterpretationCombo;
+
+typedef struct _InterpretationStyle {
+  char *name;                  // "Liz Greene Psychological"
+  char *author;                // "Liz Greene"
+  char *version;               // "1.0"
+  char *filename;              // Source filename
+
+  // Planet meanings
+  char *planetMeaning[objMax];  // Array indexed by planet
+
+  // Sign descriptions
+  char *signDesc[cSign+1];      // Adjectives
+  char *signDesire[cSign+1];    // Motivations
+
+  // House meanings
+  char *houseArea[cSign+1];     // Life areas
+
+  // Aspect templates
+  char *aspectInteract[cAspect+1];  // Interaction templates
+  char *aspectTherefore[cAspect+1]; // Conclusions
+
+  // Aspect combinations (planet1 + planet2 + aspect)
+  InterpretationCombo *aspectCombos;
+  int aspectComboCount;
+  int aspectComboAlloc;
+
+  // Combinations (key-value pairs)
+  InterpretationCombo *combos;
+  int comboCount;
+  int comboAlloc;
+
+  // Templates
+  char *defaultLocation;       // Fallback for planet/sign/house
+  char *defaultAspect;         // Fallback for aspects
+
+  flag fLoaded;                // Whether file was loaded
+} InterpretationStyle;
+
+#define cMaxStyle 10
+typedef struct _InterpretationManager {
+  InterpretationStyle *style[cMaxStyle];
+  int currentStyle;            // Currently active style (-1 = default)
+  int styleCount;
+  char *stylePath[cMaxStyle];  // File paths for each style
+} InterpretationManager;
+
+// Folder-based interpretation style management
+#define cchStylePath 256
+#define cMaxStyleFolder 20
+
+typedef struct _InterpretationFolder {
+  char *name;                  // "rudhyar"
+  char *displayName;           // "Dane Rudhyar Humanistic"
+  char *author;                // Author name
+  char *version;               // Version string
+  char *description;           // Brief description
+  char path[cchStylePath];     // Full path to style folder
+  flag fActive;                // Whether this is the active style
+  flag fLoaded;                // Whether metadata has been loaded
+} InterpretationFolder;
+
+typedef struct _InterpretationFolderManager {
+  InterpretationFolder folder[cMaxStyleFolder];
+  int folderCount;             // Number of style folders found
+  int activeFolder;            // Index of active folder (-1 = default)
+  char basePath[cchStylePath]; // ~/.astrolog/interpretations/
+  char activePath[cchStylePath]; // Path to active style folder
+} InterpretationFolderManager;
 
 #ifdef GRAPH
 typedef struct _ObjDraw {

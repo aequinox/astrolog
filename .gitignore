@@ -1,0 +1,68 @@
+# Compiled binaries
+astrolog
+astrolog.exe
+*.exe
+*.out
+*.app
+
+# Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Shared libraries
+*.so
+*.dylib
+*.dll
+
+# Static libraries
+*.a
+*.lib
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+Debug/
+Release/
+x64/
+Build/
+
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+
+# C/C++ IDEs
+.clang/
+.clangd/
+compile_commands.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Editor backup files
+*.bak
+*.backup
+*.tmp
+
+# Generated files
+*.log
+*.aaf
+
+# Local configuration (if users modify settings)
+astrolog.as
+atlas.as
+timezone.as
+earth.bmp

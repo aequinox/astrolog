@@ -172,6 +172,23 @@ CI ciSave = {6,  20, 2025, HMS(19,42,16), 1.0, 8.0, DEFAULT_LOC, NULL, NULL};
 CI ciGreg = {10, 15, 1582, 0.0,           0.0, 0.0, 0.0, 0.0,    NULL, NULL};
 CP cp0, cp1, cp2, cp3, cp4, cp5, cp6;
 
+// Interpretation manager for custom .ais style files
+InterpretationManager im = {
+  {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+  -1,      // Start with default (hardcoded) interpretations
+  0,
+  {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+};
+
+// Interpretation folder manager for style-based interpretation folders
+InterpretationFolderManager ifm = {
+  {{NULL}},  // folders
+  0,         // folderCount
+  -1,        // activeFolder (default)
+  "",        // basePath
+  ""         // activePath
+};
+
 CI * CONST rgpci[cRing+1] = {&ciCore,
   &ciMain, &ciTwin, &ciThre, &ciFour, &ciFive, &ciHexa};
 CP * CONST rgpcp[cRing+1] = {&cp0, &cp1, &cp2, &cp3, &cp4, &cp5, &cp6};

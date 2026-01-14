@@ -18,7 +18,7 @@
 #
 NAME = astrolog
 OBJS = astrolog.o atlas.o calc.o charts0.o charts1.o charts2.o charts3.o\
- data.o express.o general.o intrpret.o io.o matrix.o placalc.o placalc2.o\
+ data.o express.o general.o intrpret.o interpret.o io.o matrix.o placalc.o placalc2.o\
  xdata.o xgeneral.o xdevice.o xcharts0.o xcharts1.o xcharts2.o xscreen.o\
  swecl.o swedate.o swehouse.o swejpl.o swemmoon.o swemplan.o sweph.o\
  swephlib.o
@@ -26,7 +26,10 @@ OBJS = astrolog.o atlas.o calc.o charts0.o charts1.o charts2.o charts3.o\
 # If you don't have X windows, delete the "-lX11" part from the line below:
 # If not compiling with GNUC, delete the "-ldl" part from the line below:
 LIBS = -lm -lX11 -ldl -s
-CPPFLAGS = -O -Wno-write-strings -Wno-narrowing -Wno-comment
+CPPFLAGS = -O -march=native -mtune=native \
+           -Wno-write-strings -Wno-narrowing -Wno-comment \
+           -ffast-math -fno-math-errno -funroll-loops \
+           -fprefetch-loop-arrays -ftree-loop-vectorize
 RM = rm -f
 
 $(NAME): $(OBJS)

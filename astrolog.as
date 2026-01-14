@@ -3,15 +3,15 @@
 ; The contents of this file can be automatically generated with the
 ; "File / Save Program Settings" menu command, or with the -od command switch.
 
--z 8:00W                ; Default time zone     [hours W or E of UTC   ]
+-z 1:00E                ; Default time zone     [hours W or E of UTC   ]
 -z0 Autodetect          ; Default Daylight time [0 standard, 1 daylight]
--zl 122W19'59 47N36'35  ; Default location      [longitude and latitude]
--zv 167ft               ; Default elevation     [in feet or meters     ]
--zf 59F                 ; Default temperature   [in Fahren. or Celsius ]
--zj "Current moment now" "Seattle, WA, USA" ; Default name and location
+-zl 9E3'28 48N31'22     ; Default location      [longitude and latitude]
+-zv 341m                ; Default elevation     [in feet or meters     ]
+-zf 10C                 ; Default temperature   [in Fahren. or Celsius ]
+-zj "Current moment now" "Tübingen, Germany" ; Default name and location
 
 -Yz 0   ; Time minute addition to be used if "now" charts are offset.
-;-n      ; Comment out this line to not start with chart for "now".
+-n      ; Comment out this line to not start with chart for "now".
 
 _s      ; Which zodiac to use       ["_s" is tropical, "=s" is sidereal]
 :s Faga ; Sidereal zodiac offset    [Change "Faga" to desired ayanamsa ]
@@ -19,33 +19,34 @@ _s      ; Which zodiac to use       ["_s" is tropical, "=s" is sidereal]
 -A 5    ; Number of aspects         [Change "5" to desired number      ]
 -c Plac ; House system              [Change "Plac" to desired system   ]
 _c3     ; 3D house boundaries       ["=c3" is 3D houses, "_c3" is 2D   ]
-_k      ; Ansi color text           ["=k" is color, "_k" is monochrome ]
+=k      ; Ansi color text           ["=k" is color, "_k" is monochrome ]
 :d 48   ; Searching divisions       [Change "48" to desired divisions  ]
-_b0     ; Print zodiac seconds      ["_b0" to minute, "=b0" to second  ]
+=b0     ; Print zodiac seconds      ["_b0" to minute, "=b0" to second  ]
 _b1     ; Print zodiac milliseconds ["_b1" to second, "=b1" to millisec]
 =b      ; Use ephemeris files       ["=b" uses them, "_b" doesn't      ]
 =0b     ; Disable old calculations  ["=0b" disables them, "_0b" allows ]
 _v0     ; Show average velocities   ["=v0" average, "_v0" does absolute]
 =v3 0   ; Wheel subdivision type    [Change "0" to desired subdivision ]
 :w 0    ; Wheel chart text rows     [Change "0" to desired wheel rows  ]
-:I 80   ; Text screen columns       [Change "80" to desired columns    ]
+:I 120  ; Text screen columns       [Change "80" to desired columns    ]
 -YQ 0   ; Text screen scroll limit  [Change "24" or set to "0" for none]
 _sr0    ; Latitudes or declinations ["_sr0" shows lat., "=sr0" declin. ]
 :gs 0   ; Aspect orb type           ["0" +/-, "1" app/sep, "2" wax/wan ]
 _Ys     ; Use plane of solar system ["_Ys" is ecliptic, "=Ys" is solar ]
 _Yn     ; Which Nodes and Lilith    ["_Yn" shows mean, "=Yn" shows true]
 =Yu0    ; Show eclipse information  ["=Yu0" shows, "_Yu0" doesn't show ]
-_Yd     ; European date format      ["_Yd" is M/D/Y, "=Yd" is D-M-Y    ]
-_Yt     ; European time format      ["_Yt" is AM/PM, "=Yt" is 24 hour  ]
-_Yv     ; European length units     ["_Yv" is imperial, "=Yv" is metric]
+=Yd     ; European date format      ["_Yd" is M/D/Y, "=Yd" is D-M-Y    ]
+=Yt     ; European time format      ["_Yt" is AM/PM, "=Yt" is 24 hour  ]
+=Yv     ; European length units     ["_Yv" is imperial, "=Yv" is metric]
 _Yr     ; Show rounded positions    ["=Yr" rounds, "_Yr" doesn't       ]
 =YC     ; Smart cusp displays       ["=YC" is smart, "_YC" is normal   ]
 =YO     ; Smart copy and printing   ["=YO" does it smart, "_YO" doesn't]
 =Y8     ; Clip text to end of line  ["=Y8" clips, "_Y8" doesn't clip   ]
--Ya0    ; Input character encoding  [0-3 is Default, IBM, Latin-1, UTF8]
+-Ya3    ; Input character encoding  [0-3 is Default, IBM, Latin-1, UTF8]
+-Yao3   ; Output character encoding [0-3 is Default, IBM, Latin-1, UTF8]
 _Yz1    ; Combine DST and time zone ["=Yz1" combines, "_Yz1" doesn't   ]
 -YP 0   ; Arabic part formula       ["1" is fixed, "0" checks if night ]
-=0n     ; Internet Web queries      ["=0n" disables them, "_0n" allows ]
+_0n     ; Internet Web queries      ["=0n" disables them, "_0n" allows ]
 
 -Yw 0.0       ; Stationary movement threshold  [0.0 is never "S"]
 :pd 365.24219 ; Progression degrees per day    [365 is secondary]
@@ -59,6 +60,13 @@ _Yz1    ; Combine DST and time zone ["=Yz1" combines, "_Yz1" doesn't   ]
 -Yi2 "source"
 
 
+; INTERPRETATION STYLE SETTINGS:
+; Interpretation styles are stored in ~/.astrolog/interpretations/styles/
+; Use -Il to list available styles, -Is <name> to set a style
+; Default style: "default" (built-in interpretations)
+; Example: -Is rudhyar  (use Dane Rudhyar humanistic style)
+;          -Il         (list all available styles)
+
 ; DEFAULT RESTRICTIONS:
 ;  0-10: Ear Sun Moo Mer Ven Mar Jup Sat Ura Nep Plu
 ; 11-21: Chi Cer Pal Jun Ves Nor Sou Lil For Ver EP
@@ -70,8 +78,8 @@ _Yz1    ; Combine DST and time zone ["=Yz1" combines, "_Yz1" doesn't   ]
 ; 84-133: Fixed stars
 
 -YR 0 10     1 0 0 0 0 0 0 0 0 0 0    ; Planets
--YR 11 21    1 1 1 1 1 0 1 1 1 1 1    ; Minor planets
--YR 22 33    0 1 1 1 1 1 1 1 1 0 1 1  ; House cusps
+-YR 11 21    0 1 1 1 1 0 1 0 1 1 1    ; Minor planets
+-YR 22 33    0 1 1 0 1 1 0 1 1 0 1 1  ; House cusps
 -YR 34 42    1 1 1 1 1 1 1 1 1        ; Uranians
 -YR 43 51    1 1 1 1 1 1 1 1 1        ; Dwarfs
 -YR 52 78    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1  ; Moons
@@ -250,5 +258,32 @@ _XL              ; Show cities   ["=XL" shows them in charts, "_XL" doesn't  ]
 :YXp0 8.5in 11in ; PostScript paper X and Y sizes
 
 _X               ; Graphics chart display ["_X" is text, "=X" is graphics]
+
+; Macros
+; Calculate full and new moons, without sign change etc.
+-M0 1 "YR0 1 1 1 dm R0 moon sun RT0 moon sun A 2"
+
+; Limit transits to slow movers or fast movers
+-M0 2 "-A 3 -RT0 Mar Jup Sat Ura Nep Plu"
+-M0 3 "-A3 -RT0 Mon Sun Mer Ven"
+
+; Calculate equinoxes
+-M0 4 "-F for Ari 0:00:00 A 1 -R0 for -RT0 Sun -Ao Con 0.01"
+
+; Astrocartography
+-M0 5 "-L -X -Xs 400"
+
+-M0 10 "-i kai.renner.ast -tdn"
+-M0 11 "-i kai.renner.ast -R1 -RT1 -Rh -RTh -RU -RTC -Tn"
+-M0 12 "-R1 -RT1 -Rh -RTh -RU -RTC"
+
+; tight orbs
+-M0 13 "-YAo 1 11 .1 .1 .1 .1 .1 .1 .1 .1 .1 .1 .1"
+
+; Cosmobiology (Ebertin style): hard aspects only with tight orbs
+; 1=Con, 2=Opp, 3=Squ, 6=Inc, 8=SSq, 9=Ses
+-M0 20 "-RA Tri Sex SSxt -Ao 1 1.5 -Ao 2 1.5 -Ao 3 1.5 -Ao 8 1.0 -Ao 9 1.0 -Ao 6 1.5"
+-M0 21 "-M 20 -m"    ; Cosmobiology midpoints list
+-M0 22 "-M 20 -ma"   ; Cosmobiology midpoints with aspects
 
 ; astrolog.as

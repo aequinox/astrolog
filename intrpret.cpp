@@ -261,11 +261,170 @@ LAfter:
 }
 
 
+// Print interpretations using custom style files if loaded, otherwise fall back
+// to the default InterpretLocation() function.
+
+void InterpretLocationCustom(void)
+{
+  char sz[cchSzMax], ch;
+  CONST char *szInterpret;
+  int i, j;
+  flag fCustom;
+
+  // Check if custom style is loaded
+  fCustom = (im.currentStyle >= 0 && im.currentStyle < im.styleCount &&
+             im.style[im.currentStyle] != NULL &&
+             im.style[im.currentStyle]->fLoaded);
+
+  if (!fCustom) {
+    // No custom style loaded, use default function
+    InterpretLocation();
+    return;
+  }
+
+  PrintL();
+  for (i = 0; i <= is.nObj; i++) {
+    if (ignore[i] || !FInterpretObj(i))
+      continue;
+    AnsiColor(kObjA[i]);
+    j = SFromZ(planet[i]); ch = *Dignify(i, j);
+    sprintf(sz, "%s%s%s%s in %s", ret[i] < 0.0 ? "Retrograde " : "",
+      i == oFor && szObjDisp[i] == szObjName[i] ? "Part of " : "",
+      szObjDisp[i],
+      i == oPal && szObjDisp[i] == szObjName[i] ? " Athena" : "",
+      szSignName[j]);
+    FieldWord(sz);
+    sprintf(sz, "and %d%s House:", inhouse[i], szSuffix[inhouse[i]]);
+    FieldWord(sz);
+
+    // Try to get custom interpretation
+    szInterpret = SzGetComboInterpretation(i, j, inhouse[i]);
+
+    if (szInterpret != NULL) {
+      // Use custom interpretation with template substitution
+      char szBuf[cchSzMax*4];
+      char szPlanet[cchSzMax], szHouse[cchSzMax];
+      char *pchDst;
+      CONST char *pchSrc;
+      CONST char *pchMeaning;
+
+      // Build template components
+      sprintf(szPlanet, "%s%s%s",
+        i == oFor && szObjDisp[i] == szObjName[i] ? "Part of " : "",
+        szObjDisp[i],
+        i == oPal && szObjDisp[i] == szObjName[i] ? " Athena" : "");
+      sprintf(szHouse, "%d%s", inhouse[i], szSuffix[inhouse[i]]);
+
+      pchMeaning = NULL;
+      InterpretationStyle *style = im.style[im.currentStyle];
+      if (style != NULL && i < objMax)
+        pchMeaning = style->planetMeaning[i];
+      if (pchMeaning == NULL)
+        pchMeaning = szMindPart[i];
+
+      // Simple template substitution - replace placeholders one at a time
+      pchSrc = szInterpret;
+      pchDst = szBuf;
+      szBuf[0] = chNull;
+
+      while (*pchSrc) {
+        // Check for template markers
+        if (*pchSrc == '{') {
+          // Check each template type
+          if (pchSrc[1] == 'p' && pchSrc[2] == 'e' && pchSrc[3] == 'r' &&
+              pchSrc[4] == 's' && pchSrc[5] == 'o' && pchSrc[6] == 'n' &&
+              pchSrc[7] == '}') {
+            sprintf(pchDst, "%s", szPerson);
+            pchDst += CchSz(szPerson);
+            pchSrc += 8;
+          } else if (pchSrc[1] == 'p' && pchSrc[2] == 'l' &&
+                     pchSrc[3] == 'a' && pchSrc[4] == 'n' &&
+                     pchSrc[5] == 'e' && pchSrc[6] == 't' &&
+                     pchSrc[7] == '}') {
+            sprintf(pchDst, "%s", szPlanet);
+            pchDst += CchSz(szPlanet);
+            pchSrc += 8;
+          } else if (pchSrc[1] == 's' && pchSrc[2] == 'i' &&
+                     pchSrc[3] == 'g' && pchSrc[4] == 'n' &&
+                     pchSrc[5] == '}') {
+            sprintf(pchDst, "%s", szSignName[j]);
+            pchDst += CchSz(szSignName[j]);
+            pchSrc += 6;
+          } else if (pchSrc[1] == 'h' && pchSrc[2] == 'o' &&
+                     pchSrc[3] == 'u' && pchSrc[4] == 's' &&
+                     pchSrc[5] == 'e' && pchSrc[6] == '}') {
+            sprintf(pchDst, "%s", szHouse);
+            pchDst += CchSz(szHouse);
+            pchSrc += 7;
+          } else if (pchSrc[1] == 'a' && pchSrc[2] == 'r' &&
+                     pchSrc[3] == 'c' && pchSrc[4] == 'h' &&
+                     pchSrc[5] == 'e' && pchSrc[6] == 't' &&
+                     pchSrc[7] == 'y' && pchSrc[8] == 'p' &&
+                     pchSrc[9] == 'e' && pchSrc[10] == '}') {
+            sprintf(pchDst, "%s", pchMeaning);
+            pchDst += CchSz(pchMeaning);
+            pchSrc += 11;
+          } else {
+            // Not a recognized template, just copy characters
+            *pchDst++ = *pchSrc++;
+          }
+        } else {
+          *pchDst++ = *pchSrc++;
+        }
+      }
+      *pchDst = chNull;
+
+      FieldWord(szBuf);
+    } else {
+      // Fall back to built-in interpretation
+      sprintf(sz, "%s's", szPerson); FieldWord(sz);
+      FieldWord(szMindPart[i]); FieldWord("is");
+      if (((int)planet[i]) % 30 < 10)
+        FieldWord("very");
+      sprintf(sz, "%s, and", szDesc[j]); FieldWord(sz);
+      sprintf(sz, "%s.", szDesire[j]); FieldWord(sz);
+      FieldWord("Most often this manifests");
+      if (ret[i] < 0.0 && i != oNod && i != oSou)
+        FieldWord("in an independent, backward, introverted manner, and");
+      FieldWord("in the area of life dealing with");
+      sprintf(sz, "%s.", szLifeArea[inhouse[i]]); FieldWord(sz);
+    }
+
+    // Dignity information (same as default)
+    if (ch == 'R')
+      FieldWord("This is a major part of their psyche!");
+    else if (ch == 'd')
+      FieldWord("This bit plays only a minor part in their psyche.");
+    else if (ch == 'X')
+      FieldWord("It is easy for them to express this part of themselves.");
+    else if (ch == 'f')
+      FieldWord(
+        "It is difficult for them to express this part of themselves.");
+    else if (ch == 'S')
+      FieldWord("This is significant on an esoteric soul level!");
+    else if (ch == 's')
+      FieldWord("This is less significant on an esoteric soul level.");
+    else if (ch == 'H')
+      FieldWord("This is significant on a spiritual planetary level!");
+    else if (ch == 'h')
+      FieldWord("This is less significant on a spiritual planetary level.");
+    else if (ch == 'Y' || ch == 'z') {
+      sprintf(sz, "This expresses Ray %d energy %sly%c", rgObjRay[i],
+        ch == 'Y' ? "strong" : "weak", ch == 'Y' ? '!' : '.');
+      FieldWord(sz);
+    }
+
+    FieldWord(NULL);
+  }
+}
+
+
 // Print an interpretation for a particular aspect in effect in a chart.
 
 void InterpretAspectCore(int x, int asp, int y, int nOrb)
 {
   char sz[cchSzMax];
+  CONST char *szCustom = NULL;
 
   if (!FInterpretAsp(asp) || !FInterpretObj(x) || !FInterpretObj(y))
     return;
@@ -283,11 +442,35 @@ void InterpretAspectCore(int x, int asp, int y, int nOrb)
   }
 #endif
   FieldWord(sz); FieldWord(szMindPart[x]);
-  sprintf(sz, szInteract[asp], szModify[Min(nOrb, 2)][asp-1]);
-  FieldWord(sz);
-  sprintf(sz, "their %s.", szMindPart[y]); FieldWord(sz);
-  if (szTherefore[asp][0]) {
-    sprintf(sz, "%s.", szTherefore[asp]); FieldWord(sz);
+
+  // Check for specific aspect combination interpretation first
+  szCustom = SzGetAspectComboInterpretation(x, y, asp);
+  if (szCustom == NULL) {
+    // Fall back to generic aspect interpretation
+    szCustom = SzGetAspectInterpretation(asp, nOrb);
+  }
+  if (szCustom != NULL) {
+    // Use custom interpretation - replace placeholder with second planet
+    char szCustomExpanded[cchSzLine];
+    sprintf(szCustomExpanded, szCustom, szMindPart[y]);
+    FieldWord(szCustomExpanded);
+
+    // Check for custom "therefore" clause
+    if (im.currentStyle >= 0 && im.currentStyle < im.styleCount &&
+        im.style[im.currentStyle] != NULL &&
+        im.style[im.currentStyle]->aspectTherefore[asp] != NULL &&
+        im.style[im.currentStyle]->aspectTherefore[asp][0]) {
+      sprintf(sz, "%s.", im.style[im.currentStyle]->aspectTherefore[asp]);
+      FieldWord(sz);
+    }
+  } else {
+    // Use built-in interpretation
+    sprintf(sz, szInteract[asp], szModify[Min(nOrb, 2)][asp-1]);
+    FieldWord(sz);
+    sprintf(sz, "their %s.", szMindPart[y]); FieldWord(sz);
+    if (szTherefore[asp][0]) {
+      sprintf(sz, "%s.", szTherefore[asp]); FieldWord(sz);
+    }
   }
 #ifdef EXPRESS
 LAfter:

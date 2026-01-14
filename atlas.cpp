@@ -1469,6 +1469,46 @@ flag FLoadZoneLinks(FILE *file, int czl)
 }
 
 
+// Normalize German umlauts to ASCII equivalents. Converts:
+// ä/Ä -> ae, ö/Ö -> oe, ü/Ü -> ue, ß -> ss
+// Handles UTF-8 encoded umlauts (2-byte sequences).
+// Returns length of normalized string.
+
+int NormalizeUmlauts(char *szDst, CONST char *szSrc, int cchMax)
+{
+  char *pchDst = szDst;
+  int cch;
+
+  while (*szSrc && pchDst - szDst < cchMax - 3) {
+    cch = 1;
+    // Check for UTF-8 umlaut sequences (start with 0xC3)
+    if ((byte)*szSrc == 0xC3 && szSrc[1] != chNull) {
+      switch ((byte)szSrc[1]) {
+      case 0xA4: cch = sprintf(pchDst, "ae"); szSrc++; break; // ä (UTF-8: C3 A4)
+      case 0x84: cch = sprintf(pchDst, "Ae"); szSrc++; break; // Ä (UTF-8: C3 84)
+      case 0xB6: cch = sprintf(pchDst, "oe"); szSrc++; break; // ö (UTF-8: C3 B6)
+      case 0x96: cch = sprintf(pchDst, "Oe"); szSrc++; break; // Ö (UTF-8: C3 96)
+      case 0xBC: cch = sprintf(pchDst, "ue"); szSrc++; break; // ü (UTF-8: C3 BC)
+      case 0x9C: cch = sprintf(pchDst, "Ue"); szSrc++; break; // Ü (UTF-8: C3 9C)
+      case 0x9F: cch = sprintf(pchDst, "ss"); szSrc++; break; // ß (UTF-8: C3 9F)
+      default:  *pchDst = *szSrc; cch = 1; break;
+      }
+    } else if ((byte)*szSrc >= 0x80) {
+      // Skip other multi-byte UTF-8 characters (copy as-is or skip)
+      // For simplicity, just copy the first byte
+      *pchDst = *szSrc; cch = 1;
+    } else {
+      // Regular ASCII character
+      *pchDst = *szSrc; cch = 1;
+    }
+    szSrc++;
+    pchDst += cch;
+  }
+  *pchDst = chNull;
+  return (int)(pchDst - szDst);
+}
+
+
 // Lookup a city in the atlas. Display a list of matches in text or in a
 // Windows dialog. Implements the -N switch and "Lookup City" button.
 
@@ -1539,13 +1579,27 @@ flag DisplayAtlasLookup(CONST char *szIn, size_t lDialog, int *piae)
   }
 
   // Loop over all cities in atlas, seeing how well they match input string.
+  char szCityNorm[cchSzMax], szCityTest[cchSzMax];
+  int cchCityNorm;
+
+  // Normalize the search string (e.g. "Tübingen" -> "Tuebingen")
+  NormalizeUmlauts(szCityNorm, szCity, cchSzMax);
+  cchCityNorm = CchSz(szCityNorm);
+
   for (iae = 0; iae < is.cae; iae++) {
     pae = &is.rgae[iae];
     nPower = 0;
+    // Normalize the city name from atlas for umlaut-insensitive comparison
+    NormalizeUmlauts(szCityTest, pae->szNam, cchSzMax);
+
+    // Check original name match (exact = 10 points)
     if (FEqSzI(szCity, pae->szNam)) {
-      // Exact match of entire name = 10 points.
       nPower = 10;
+    } else if (FEqSzI(szCityNorm, szCityTest)) {
+      // Check normalized match (slightly lower score = 9 points)
+      nPower = 9;
     } else {
+      // Substring matching with original names
       for (j = 0; pae->szNam[j]; j++)
         if (FEqSzSubI(szCity, &pae->szNam[j]))
           break;
@@ -1554,6 +1608,15 @@ flag DisplayAtlasLookup(CONST char *szIn, size_t lDialog, int *piae)
       if (pae->szNam[j] != chNull)
         nPower = 1 + (j == 0 || pae->szNam[j-1] < 'A') +
           (pae->szNam[j + CchSz(szCity)] < 'A');
+      else {
+        // Try normalized substring match (for umlaut searches)
+        for (j = 0; szCityTest[j]; j++)
+          if (FEqSzSubI(szCityNorm, &szCityTest[j]))
+            break;
+        if (szCityTest[j] != chNull)
+          nPower = 1 + (j == 0 || szCityTest[j-1] < 'A') +
+            (szCityTest[j + cchCityNorm] < 'A');
+      }
     }
     // Input has to at least be substring of city, to be any match.
     if (nPower <= 0)

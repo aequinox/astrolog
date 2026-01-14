@@ -1870,8 +1870,8 @@ char *SzDate(int mon, int day, int yea, int nFormat)
     switch (nFormat) {
     case  2: sprintf(szDat, "%2d %.3s %4d", day, szMonth[mon], yea); break;
     case  1: sprintf(szDat, "%d %s %d", day, szMonth[mon], yea);     break;
-    case -1: sprintf(szDat, "%2d-%2d-%2d", day, mon, NAbs(yea)%100); break;
-    default: sprintf(szDat, "%2d-%2d-%4d", day, mon, yea);           break;
+    case -1: sprintf(szDat, "%02d-%02d-%02d", day, mon, NAbs(yea)%100); break;
+    default: sprintf(szDat, "%02d-%02d-%4d", day, mon, yea);           break;
     }
   } else {
     switch (nFormat) {

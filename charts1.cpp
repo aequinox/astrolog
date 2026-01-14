@@ -151,7 +151,7 @@ void ChartListing(void)
     if (us.nRel == rcSynastry)
       InterpretSynastry();      // Print synastry interpretaion for -r -I.
     else
-      InterpretLocation();      // Do normal interpretation for just -v -I.
+      InterpretLocationCustom(); // Do normal interpretation for just -v -I.
     return;
   }
 #endif

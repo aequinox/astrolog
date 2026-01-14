@@ -154,6 +154,8 @@ extern CP cp0, cp1, cp2, cp3, cp4, cp5, cp6;
 extern CP * CONST rgpcp[cRing+1];
 extern CI * CONST rgpci[cRing+1];
 extern flag rgfProg[cRing+1];
+extern InterpretationManager im;
+extern InterpretationFolderManager ifm;
 
 extern real force[objMax];
 extern GridInfo *grid;
@@ -651,6 +653,26 @@ extern void InterpretMidpointRelation P((int, int));
 extern void InterpretAstroGraph P((int, int, int, int));
 extern int InterpretEsoteric P((flag));
 extern void PrintEsoteric P((void));
+
+// Custom interpretation style management (from interpret.cpp)
+extern flag FLoadInterpretationStyle P((CONST char *));
+extern void FreeInterpretationStyle P((InterpretationStyle *));
+extern CONST char *SzGetComboInterpretation P((int, int, int));
+extern CONST char *SzGetAspectInterpretation P((int, int));
+extern CONST char *SzGetAspectComboInterpretation P((int, int, int));
+extern void InterpretLocationCustom P((void));
+
+// Folder-based interpretation style management
+extern flag FInitInterpretationFolders P((void));
+extern int ScanInterpretationFolders P((void));
+extern flag FLoadStyleConfig P((InterpretationFolder *, CONST char *));
+extern flag FSetActiveStyle P((CONST char *));
+extern CONST char *SzGetAISPath P((CONST char *, int));
+extern void PrintInterpretationStyles P((void));
+extern flag FLoadAISFile P((CONST char *, int));
+extern flag FLoadAISFileIntoStyle P((InterpretationStyle *, CONST char *));
+extern flag FInstallStylePackage P((CONST char *));
+extern flag FMigrateOldAISFiles P((void));
 #endif
 extern void SortRank P((real *, int *, int, flag));
 extern void ComputeInfluence P((real[oNorm+1], real[oNorm+1]));

@@ -1001,30 +1001,105 @@ int NProcessSwitchesRare(int argc, char **argv, int pos,
 
 #ifdef INTERPRET
   case 'I':
-    if (FErrorArgc("YI", argc, 2))
-      return tcError;
-    i = NParseSz(argv[1],
-      ch1 == 'A' ? pmAspect : (ch1 == chNull ? pmObject : pmSign));
-    j = ch1 == 'A' ? cAspect : (ch1 == chNull ? (int)cObj : (int)cSign);
-    if (FErrorValN("YI", !FBetween(i, (int)(ch1 != chNull), j), i, 1))
-      return tcError;
-    if (ch1 == 'A' && ch2 == '0')
-      ch1 = '0';
-    switch (ch1) {
-    case 'A':    FCloneSzCore(argv[2], (char **)&szInteract[i],
-      szInteract[i]  == szInteractDef[i]);  break;
-    case '0':    FCloneSzCore(argv[2], (char **)&szTherefore[i],
-      szTherefore[i] == szThereforeDef[i]); break;
-    case chNull: FCloneSzCore(argv[2], (char **)&szMindPart[i],
-      szMindPart[i]  == szMindPartDef[i]);  break;
-    case 'C':    FCloneSzCore(argv[2], (char **)&szLifeArea[i],
-      szLifeArea[i]  == szLifeAreaDef[i]);  break;
-    case 'v':    FCloneSzCore(argv[2], (char **)&szDesire[i],
-      szDesire[i]    == szDesireDef[i]);    break;
-    default:     FCloneSzCore(argv[2], (char **)&szDesc[i],
-      szDesc[i]      == szDescDef[i]);      break;
+    // Check for interpretation style sub-switches
+    if (ch1 == 's') {  // -Is <name> - Set style by name or load file
+      if (FErrorArgc("YIs", argc, 2))
+        return tcError;
+      // First try to set by style name (folder-based)
+      if (FSetActiveStyle(argv[1])) {
+        // Successfully set folder-based style
+        argc--; argv++;
+      } else {
+        // Fallback to loading file directly
+        if (im.styleCount >= cMaxStyle) {
+          PrintError("Maximum interpretation styles loaded.");
+          return fFalse;
+        }
+        i = im.styleCount;
+        if (!FLoadInterpretationStyle(argv[1])) {
+          PrintWarning("Failed to load interpretation style file.");
+          return fFalse;
+        }
+        im.stylePath[i] = SzClone(argv[1]);
+        im.styleCount++;
+        im.currentStyle = i;
+        argc--; argv++;
+      }
+    } else if (ch1 == 'l') {  // -Il - List available styles
+      // Initialize folder system if not already done
+      if (ifm.folderCount == 0)
+        FInitInterpretationFolders();
+      // Print folder-based styles
+      PrintInterpretationStyles();
+      // Also list loaded single-file styles
+      if (im.styleCount > 0) {
+        PrintSz("\nLoaded Single-File Styles:\n");
+        for (i = 0; i < im.styleCount; i++) {
+          char szTemp[20];
+          sprintf(szTemp, "[%d] ", i);
+          PrintSz(szTemp);
+          PrintSz(im.style[i] && im.style[i]->name ? im.style[i]->name :
+                  im.stylePath[i] ? im.stylePath[i] : "Unnamed");
+          PrintSz("\n");
+        }
+      }
+    } else if (ch1 == 'd') {  // -Id - Use default (hardcoded) interpretations
+      im.currentStyle = -1;
+      ifm.activeFolder = -1;
+    } else if (ch1 == 'n') {  // -In <index> - Switch to style by number
+      if (FErrorArgc("YIn", argc, 2))
+        return tcError;
+      i = NFromSz(argv[1]);
+      if (i < 0 || i >= im.styleCount) {
+        PrintError("Invalid style index.");
+        return fFalse;
+      }
+      im.currentStyle = i;
+      argc--; argv++;
+    } else if (ch1 == 'i') {  // -Ii <file> - Install style package
+      if (FErrorArgc("YIi", argc, 2))
+        return tcError;
+      FInstallStylePackage(argv[1]);
+      argc--; argv++;
+    } else if (FErrorArgc("YI", argc, 1)) {  // -I <name> - Use style for current chart
+      // This is for when -I is followed by a style name without -Is
+      // Initialize folder system if not already done
+      if (ifm.folderCount == 0)
+        FInitInterpretationFolders();
+      // Try to set by style name
+      if (!FSetActiveStyle(argv[1])) {
+        PrintWarning("Style not found: ");
+        PrintWarning(argv[1]);
+        PrintWarning("\n");
+      }
+      argc--; argv++;
+    } else {
+      // Original -I switch behavior for modifying interpretation strings
+      if (FErrorArgc("YI", argc, 2))
+        return tcError;
+      i = NParseSz(argv[1],
+        ch2 == 'A' ? pmAspect : (ch2 == chNull ? pmObject : pmSign));
+      j = ch2 == 'A' ? cAspect : (ch2 == chNull ? (int)cObj : (int)cSign);
+      if (FErrorValN("YI", !FBetween(i, (int)(ch2 != chNull), j), i, 1))
+        return tcError;
+      if (ch2 == 'A' && ch1 == '0')
+        ch2 = '0';
+      switch (ch2) {
+      case 'A':    FCloneSzCore(argv[2], (char **)&szInteract[i],
+        szInteract[i]  == szInteractDef[i]);  break;
+      case '0':    FCloneSzCore(argv[2], (char **)&szTherefore[i],
+        szTherefore[i] == szThereforeDef[i]); break;
+      case chNull: FCloneSzCore(argv[2], (char **)&szMindPart[i],
+        szMindPart[i]  == szMindPartDef[i]);  break;
+      case 'C':    FCloneSzCore(argv[2], (char **)&szLifeArea[i],
+        szLifeArea[i]  == szLifeAreaDef[i]);  break;
+      case 'v':    FCloneSzCore(argv[2], (char **)&szDesire[i],
+        szDesire[i]    == szDesireDef[i]);    break;
+      default:     FCloneSzCore(argv[2], (char **)&szDesc[i],
+        szDesc[i]      == szDescDef[i]);      break;
+      }
+      darg += 2;
     }
-    darg += 2;
     break;
 #endif
 
@@ -1845,7 +1920,84 @@ flag FProcessSwitches(int argc, char **argv)
       break;
 
     case 'I':
-      if (argc > 1 && (i = NFromSz(argv[1]))) {
+      // Check for interpretation style sub-switches
+      if (ch1 == 's') {  // -Is <name> - Set style by name or load file
+        if (argc < 2) {
+          PrintError("Too few parameters to switch -Is");
+          return fFalse;
+        }
+        // First try to set by style name (folder-based)
+        if (FSetActiveStyle(argv[1])) {
+          // Successfully set folder-based style
+          argc--; argv++;
+        } else {
+          // Fallback to loading file directly
+          if (im.styleCount >= cMaxStyle) {
+            PrintError("Maximum interpretation styles loaded.");
+            return fFalse;
+          }
+          i = im.styleCount;
+          if (!FLoadInterpretationStyle(argv[1])) {
+            PrintWarning("Failed to load interpretation style file.");
+            return fFalse;
+          }
+          im.stylePath[i] = SzClone(argv[1]);
+          im.styleCount++;
+          im.currentStyle = i;
+          argc--; argv++;
+        }
+      } else if (ch1 == 'l') {  // -Il - List available styles
+        // Initialize folder system if not already done
+        if (ifm.folderCount == 0)
+          FInitInterpretationFolders();
+        // Print folder-based styles
+        PrintInterpretationStyles();
+        // Also list loaded single-file styles
+        if (im.styleCount > 0) {
+          PrintSz("\nLoaded Single-File Styles:\n");
+          for (i = 0; i < im.styleCount; i++) {
+            char szTemp[20];
+            sprintf(szTemp, "[%d] ", i);
+            PrintSz(szTemp);
+            PrintSz(im.style[i] && im.style[i]->name ? im.style[i]->name :
+                    im.stylePath[i] ? im.stylePath[i] : "Unnamed");
+            PrintSz("\n");
+          }
+        }
+      } else if (ch1 == 'd') {  // -Id - Use default (hardcoded) interpretations
+        im.currentStyle = -1;
+        ifm.activeFolder = -1;
+      } else if (ch1 == 'n') {  // -In <index> - Switch to style by number
+        if (argc < 2) {
+          PrintError("Too few parameters to switch -In");
+          return fFalse;
+        }
+        i = NFromSz(argv[1]);
+        if (i < 0 || i >= im.styleCount) {
+          PrintError("Invalid style index.");
+          return fFalse;
+        }
+        im.currentStyle = i;
+        argc--; argv++;
+      } else if (ch1 == 'i') {  // -Ii <file> - Install style package
+        if (argc < 2) {
+          PrintError("Too few parameters to switch -Ii");
+          return fFalse;
+        }
+        FInstallStylePackage(argv[1]);
+        argc--; argv++;
+      } else if (FErrorArgc("YI", argc, 1)) {  // -I <name> - Use style for current chart
+        // Initialize folder system if not already done
+        if (ifm.folderCount == 0)
+          FInitInterpretationFolders();
+        // Try to set by style name
+        if (!FSetActiveStyle(argv[1])) {
+          PrintWarning("Style not found: ");
+          PrintWarning(argv[1]);
+          PrintWarning("\n");
+        }
+        argc--; argv++;
+      } else if (argc > 1 && (i = NFromSz(argv[1]))) {
         argc--; argv++;
         if (FErrorValN("I", !FValidScreen(i), i, 0))
           return fFalse;

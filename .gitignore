@@ -57,6 +57,10 @@ compile_commands.json
 *.backup
 *.tmp
 
+# AI/LLM tool folders
+.claude/
+.serena/
+
 # Generated files
 *.log
 *.aaf

@@ -70,3 +70,7 @@ astrolog.as
 atlas.as
 timezone.as
 earth.bmp
+
+# MCP and ephemeral folders
+.specify/
+ephem/

@@ -11,7 +11,7 @@
 #
 # This Makefile is included only for convenience. One could easily compile
 # Astrolog on most Unix systems by hand with the command:
-# % cc -c -O *.cpp; cc -o astrolog *.o -lm -lX11
+# % c++ -std=c++23 -O2 -c *.cpp; c++ -o astrolog *.o -lm -lX11
 # Generally, all that needs to be done to compile once astrolog.h has been
 # edited, is compile each source file, and link them together with the math
 # library, and if applicable, the main X library.
@@ -25,15 +25,29 @@ OBJS = astrolog.o atlas.o calc.o charts0.o charts1.o charts2.o charts3.o\
 
 # If you don't have X windows, delete the "-lX11" part from the line below:
 # If not compiling with GNUC, delete the "-ldl" part from the line below:
-LIBS = -lm -lX11 -ldl -s
-CPPFLAGS = -O -march=native -mtune=native \
+LIBS = -lm -lX11 -ldl
+
+CXX = c++
+CXXFLAGS = -std=c++23 -O -march=native -mtune=native \
            -Wno-write-strings -Wno-narrowing -Wno-comment \
            -ffast-math -fno-math-errno -funroll-loops \
-           -fprefetch-loop-arrays -ftree-loop-vectorize
+           -fprefetch-loop-arrays -ftree-loop-vectorize \
+           -flto=auto -DNDEBUG
+
 RM = rm -f
 
+.PHONY: all clean
+
+# Default target
+all: $(NAME)
+
+# Link step
 $(NAME): $(OBJS)
-	cc -o $(NAME) $(OBJS) $(LIBS)
+	$(CXX) -o $(NAME) $(OBJS) $(LIBS)
+
+# Compile rule
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 clean:
 	$(RM) $(OBJS) $(NAME)
